@@ -1,5 +1,6 @@
 package com.db.awmd.challenge.domain;
 
+import com.db.awmd.challenge.exception.InsufficientFundsException;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.math.BigDecimal;
@@ -30,5 +31,16 @@ public class Account {
     @JsonProperty("balance") BigDecimal balance) {
     this.accountId = accountId;
     this.balance = balance;
+  }
+
+  public void debit(BigDecimal amount) throws InsufficientFundsException {
+    if(this.balance.compareTo(amount) == -1) {
+      throw new InsufficientFundsException("Insufficient funds to initiate transfer.");
+    }
+    this.balance = this.balance.subtract(amount);
+  }
+
+  public void credit(BigDecimal amount) {
+    this.balance = this.balance.add(amount);
   }
 }
