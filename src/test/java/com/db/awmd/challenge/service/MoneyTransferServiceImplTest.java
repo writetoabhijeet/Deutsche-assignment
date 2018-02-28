@@ -4,15 +4,17 @@ import com.db.awmd.challenge.domain.Account;
 import com.db.awmd.challenge.dto.MoneyTransferRequest;
 import com.db.awmd.challenge.dto.MoneyTransferResponse;
 import com.db.awmd.challenge.exception.MoneyTransferException;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.Mock;
+import org.mockito.Mockito;
+import org.mockito.MockitoAnnotations;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringRunner;
 
 import java.math.BigDecimal;
-
-import static org.junit.Assert.*;
 
 /**
  * Created by USER on 28-02-2018.
@@ -28,10 +30,19 @@ public class MoneyTransferServiceImplTest {
     @Autowired
     private AccountsService accountsService;
 
+    @Mock
+    private NotificationService notificationService;
+
+    @Before
+    public void setUp() {
+        MockitoAnnotations.initMocks(this);
+    }
+
 
     @Test(expected = MoneyTransferException.class )
     public void testTransferMoneyForSameSourceAndDestinationAcc() throws Exception {
         MoneyTransferRequest request = buildReqObject("ID-101","ID-101",50l);
+        Mockito.doNothing().when(notificationService).notifyAboutTransfer(Mockito.any(Account.class), Mockito.anyString());
         moneyService.transferMoney(request);
     }
 
@@ -41,6 +52,7 @@ public class MoneyTransferServiceImplTest {
         account.setBalance(new BigDecimal(1000));
         this.accountsService.createAccount(account);
         MoneyTransferRequest request = buildReqObject("Id-050","ID-101",50l);
+        Mockito.doNothing().when(notificationService).notifyAboutTransfer(Mockito.any(Account.class), Mockito.anyString());
         moneyService.transferMoney(request);
     }
 
@@ -54,6 +66,7 @@ public class MoneyTransferServiceImplTest {
         account1.setBalance(new BigDecimal(5000));
         this.accountsService.createAccount(account1);
         MoneyTransferRequest request = buildReqObject("Id-300","Id-301",5000);
+        Mockito.doNothing().when(notificationService).notifyAboutTransfer(Mockito.any(Account.class), Mockito.anyString());
         moneyService.transferMoney(request);
     }
 
@@ -67,6 +80,7 @@ public class MoneyTransferServiceImplTest {
         account1.setBalance(new BigDecimal(5000));
         this.accountsService.createAccount(account1);
         MoneyTransferRequest request = buildReqObject("Id-400","Id-401",500);
+        Mockito.doNothing().when(notificationService).notifyAboutTransfer(Mockito.any(Account.class), Mockito.anyString());
         MoneyTransferResponse response= moneyService.transferMoney(request);
 
     }

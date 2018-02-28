@@ -2,14 +2,15 @@ package com.db.awmd.challenge.repository;
 
 import com.db.awmd.challenge.domain.Account;
 import com.db.awmd.challenge.exception.DuplicateAccountIdException;
+import org.springframework.stereotype.Repository;
+
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import org.springframework.stereotype.Repository;
 
 @Repository
 public class AccountsRepositoryInMemory implements AccountsRepository {
 
-  private final Map<String, Account> accounts = new ConcurrentHashMap<>();
+  private final Map<String, Account> accounts = new ConcurrentHashMap<String, Account>();
 
   @Override
   public void createAccount(Account account) throws DuplicateAccountIdException {

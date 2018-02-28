@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
+import java.text.NumberFormat;
 
 /**
  * Created by USER on 24-02-2018.
@@ -20,6 +21,9 @@ public class MoneyTransferServiceImpl implements MoneyTransferService {
 
     @Autowired
     private AccountsService accountsService;
+
+    @Autowired
+    private NotificationService notificationService;
 
     private static Object sharedLock = new Object();
 
@@ -85,9 +89,40 @@ public class MoneyTransferServiceImpl implements MoneyTransferService {
         Account fromAccount = accountsService.getAccount(request.getAccountFrom());
         Account toAccount = accountsService.getAccount(request.getAccountFrom());
         BigDecimal transferAmt = request.getAmountToTransfer();
-        fromAccount.debit(transferAmt);
-        toAccount.credit(transferAmt);
+        try {
+            fromAccount.debit(transferAmt);
+            toAccount.credit(transferAmt);
+            notifyMoneyTransfer(fromAccount, toAccount, transferAmt);
+        } catch (Exception e) {
+
+            log.error("Exception occurs while fund transfer", e);
+            throw new MoneyTransferException(e.getMessage());
+        }
+
         return new MoneyTransferResponse("Successful");
+    }
+
+    /**
+     * This method notify both account holder regarding the transactions.
+     *
+     * @param fromAccount
+     * @param toAccount
+     * @param transferAmt
+     */
+    private void notifyMoneyTransfer(Account fromAccount, Account toAccount, BigDecimal transferAmt) {
+        notificationService.notifyAboutTransfer(fromAccount, String.join(" ", "Amount of", currencyFormat(transferAmt), "debited to the account-id:", fromAccount.getAccountId()));
+        notificationService.notifyAboutTransfer(toAccount, String.join(" ", "Amount of", currencyFormat(transferAmt), "credited to the account-id:", toAccount.getAccountId()));
+    }
+
+    /**
+     * This method uses locale to choose your currency symbol,
+     * and return decorated string value.
+     *
+     * @param n amount transfer
+     * @return amount with symbol
+     */
+    public static String currencyFormat(BigDecimal n) {
+        return NumberFormat.getCurrencyInstance().format(n);
     }
 
 
