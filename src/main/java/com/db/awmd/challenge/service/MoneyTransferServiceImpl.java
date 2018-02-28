@@ -21,6 +21,8 @@ public class MoneyTransferServiceImpl implements MoneyTransferService {
     @Autowired
     private AccountsService accountsService;
 
+    private static Object sharedLock = new Object();
+
 
     /**
      * This method validate the source and destination account & amount to transfer . And on successful
@@ -31,8 +33,10 @@ public class MoneyTransferServiceImpl implements MoneyTransferService {
     @Override
     public MoneyTransferResponse transferMoney(MoneyTransferRequest request) {
         validateAccounts(request);
-        validateTransferAmount(request);
-        return transferAmount(request);
+        synchronized (sharedLock) {
+            validateTransferAmount(request);
+            return transferAmount(request);
+        }
     }
 
     /**
@@ -77,7 +81,7 @@ public class MoneyTransferServiceImpl implements MoneyTransferService {
      * @param request
      * @return
      */
-    private synchronized MoneyTransferResponse transferAmount(MoneyTransferRequest request) {
+    private MoneyTransferResponse transferAmount(MoneyTransferRequest request) {
         Account fromAccount = accountsService.getAccount(request.getAccountFrom());
         Account toAccount = accountsService.getAccount(request.getAccountFrom());
         BigDecimal transferAmt = request.getAmountToTransfer();
